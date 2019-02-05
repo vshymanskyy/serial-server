@@ -9,34 +9,91 @@ const ws = require('ws')
 const auth = require('basic-auth')
 const basicAuth = require('express-basic-auth')
 const compression = require("compression")
+const yargs = require('yargs')
+const url = require('url')
+const chalk = require('chalk')
 
-//TODO: --port --port --baud --auth=login:pass --tunnel=subdomain
-
-let portName = process.argv[2];
-let	portConfig = {
-  baudRate: 115200,
+const argv =
+  yargs
+  .usage('$0 <port> [options]')
+  .options({
+    'bind': {
+      alias: ['addr'],
+      describe: 'server endpoint address',
+      default: "0.0.0.0:5123",
+      coerce:  (opt) => {
+        let u = url.parse('http://' + opt)
+        return {
+          host: u.hostname || '0.0.0.0',
+          port: parseInt(u.port) || 5123
+        }
+      }
+    },
+    'baudRate': {
+      alias: ['b', 'baud'],
+      type:  'number',
+      default: 115200
+    },
+    'dataBits': {
+      choices: [8, 7, 6, 5],
+      default: 8
+    },
+    'stopBits': {
+      choices: [1, 2],
+      default: 1
+    },
+    'parity': {
+      choices: ['none', 'even', 'mark', 'odd', 'space'],
+      default: 'none'
+    },
+    'auth': {
+      type: 'array',
+      default: []
+    },
+    'tunnel': {
+      type: 'string',
+      desc: 'Create tunnel link automatically'
+    },
+  })
+  .config()
+  .epilog('Copyright 2019 Volodymyr Shymanskyy')
+  .alias('h', 'help')
+  .wrap(Math.min(120, yargs.terminalWidth()))
+  .argv;
+  
+Object.assign(argv, {
   bindingOptions: {
     vtime: 1
   }
-};
+});
 
-let users = {
-  'admin': 'wow'
+let serialPort = argv._[0];
+
+let needAuth = false;
+let users = {}
+for (let auth of argv.auth) {
+  let [user, pass] = auth.split(':');
+  users[user] = pass;
+  needAuth = true;
 }
 
 function verifyClient(client) {
   let req = client.req;
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   
-  console.log("Connection from", ip)
+  if (!needAuth) {
+    console.log(`New connection [${ip}]`)
+    return true
+  }
 
   const cred = auth(client.req);
-  for(var i in users) {
-    if(cred.name == i && cred.pass == users[i]) {
-      console.log("WS auth ok.")
+  for (let i in users) {
+    if (cred.name == i && cred.pass == users[i]) {
+      console.log(`User ${chalk.yellow.bold(cred.name)} connected [${ip}]`)
       return true
     }
   }
+  console.log(`User ${cred.name}`, chalk.red.bold("rejected"), `[${ip}]`)
   return false
 }
 
@@ -46,11 +103,13 @@ let wss = new ws.Server({ server, verifyClient });
 
 app.use(helmet())
 
-app.use(basicAuth({
+if (needAuth) {
+  app.use(basicAuth({
     users,
     challenge: true,
     unauthorizedResponse: (req) => "Unauthorized."
-}));
+  }));
+}
 
 app.use(compression());
 
@@ -79,21 +138,24 @@ function connectClient(client) {
 }
 
 
-var myPort = new SerialPort(portName, portConfig);
+var myPort = new SerialPort(serialPort, argv);
 
 myPort.on('open', () => {
-  console.log('port open');
-  console.log('baud rate: ' + myPort.baudRate);
+  console.log(`Opened port ${myPort.path},${myPort.baudRate}`);
 });
 myPort.on('data', broadcast);
 
 //TODO: handle port reconnection
 
 // start the servers:
-server.listen(8080);
+server.listen(argv.bind, (err) => {
+  console.log(`Server listening on ${argv.bind.host}:${argv.bind.port}`);
+});
 wss.on('connection', connectClient);
 
-const localtunnel = require('localtunnel');
-var tunnel = localtunnel(8080, { subdomain: "vsh-console" }, function(err, tunnel) {
-  console.log(tunnel.url);
-});
+if (argv.tunnel) {
+  const localtunnel = require('localtunnel');
+  localtunnel(argv.bind.port, { subdomain: argv.tunnel }, function(err, tunnel) {
+    console.log(`Your tunnel link: ${chalk.blue.bold(tunnel.url)}`);
+  });
+}
