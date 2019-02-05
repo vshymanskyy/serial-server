@@ -19,7 +19,7 @@ const argv =
   .options({
     'bind': {
       alias: ['addr'],
-      describe: 'server endpoint address',
+      describe: 'Server endpoint address',
       default: "0.0.0.0:5123",
       coerce:  (opt) => {
         let u = url.parse('http://' + opt)
@@ -48,7 +48,7 @@ const argv =
     },
     'auth': {
       type: 'array',
-      default: []
+      describe: 'Password protection. Can add multiple users (user:pass)',
     },
     'tunnel': {
       type: 'string',
@@ -69,19 +69,20 @@ Object.assign(argv, {
 
 let serialPort = argv._[0];
 
-let needAuth = false;
 let users = {}
-for (let auth of argv.auth) {
-  let [user, pass] = auth.split(':');
-  users[user] = pass;
-  needAuth = true;
+if (argv.auth) {
+  for (let auth of argv.auth) {
+    let [user, pass] = auth.split(':');
+    users[user] = pass;
+    needAuth = true;
+  }
 }
 
 function verifyClient(client) {
   let req = client.req;
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   
-  if (!needAuth) {
+  if (!argv.auth) {
     console.log(`New connection [${ip}]`)
     return true
   }
