@@ -153,7 +153,7 @@ server.listen(argv.bind, (err) => {
 });
 wss.on('connection', connectClient);
 
-if (argv.tunnel) {
+if (argv.tunnel || argv.tunnel==='') {
   const localtunnel = require('localtunnel');
   localtunnel(argv.bind.port, { subdomain: argv.tunnel }, function(err, tunnel) {
     console.log(`Your tunnel link: ${chalk.blue.bold(tunnel.url)}`);
