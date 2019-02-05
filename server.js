@@ -74,7 +74,6 @@ if (argv.auth) {
   for (let auth of argv.auth) {
     let [user, pass] = auth.split(':');
     users[user] = pass;
-    needAuth = true;
   }
 }
 
@@ -104,7 +103,7 @@ let wss = new ws.Server({ server, verifyClient });
 
 app.use(helmet())
 
-if (needAuth) {
+if (argv.auth) {
   app.use(basicAuth({
     users,
     challenge: true,
