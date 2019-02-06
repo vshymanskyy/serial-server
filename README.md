@@ -1,5 +1,5 @@
 This tool allows you to share/access your serial terminal over the internet.
-___
+
 
 ![examples](/docs/example_browser.png)
 
