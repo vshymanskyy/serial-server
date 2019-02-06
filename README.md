@@ -1,11 +1,14 @@
-# serial-server
-Serial Port Server
+This tool allows you to share/access your serial terminal over the internet.
+___
+
+![examples](/docs/example_browser.png)
 
 ## Installation
 
 ```sh
 npm i -g https://github.com/vshymanskyy/serial-server.git
 ```
+
 ## Usage
 
 ```log
@@ -26,3 +29,12 @@ Options:
 Copyright 2019 Volodymyr Shymanskyy
 
 ```
+
+## Example
+
+```sh
+serial-server /dev/ttyACM0 --baud=115200 --auth=vova:MyPaSS --tunnel=vsh-device01
+```
+![examples](/docs/example_console.png)
+
+Visit the provided tunnel link. It will ask for the password, then present you with a remote terminal.
