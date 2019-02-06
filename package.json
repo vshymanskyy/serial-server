@@ -19,7 +19,7 @@
   },
   "optionalDependencies": {
     "localtunnel": "*",
-    "node-pty": "*"
+    "node-pty-prebuilt": "*"
   },
   "devDependencies": {},
   "scripts": {

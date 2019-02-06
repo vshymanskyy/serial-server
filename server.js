@@ -145,7 +145,7 @@ let port_write  = function(data) {};
 let port_resize = function(cols, rows) {};
 
 if (argv.port === 'shell') {
-  const pty = require('node-pty');
+  const pty = require('node-pty-prebuilt');
   let shell = process.env[process.platform === 'win32' ? 'COMSPEC' : 'SHELL'];
 
   let sh = pty.spawn(shell, [], {
