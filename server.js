@@ -135,11 +135,14 @@ function connectClient(client) {
     let msg = JSON.parse(data);
     if (msg.type == 'data') {
       port_write(Buffer.from(msg.data));
+    } else if (msg.type == 'resize') {
+      port_resize(msg.cols, msg.rows);
     }
   });
 }
 
-let port_write;
+let port_write  = function(data) {};
+let port_resize = function(cols, rows) {};
 
 if (argv.port === 'shell') {
   const pty = require('node-pty');
@@ -157,8 +160,12 @@ if (argv.port === 'shell') {
 
   sh.on('data', broadcast);
 
-  port_write = (data) => {
+  port_write = function(data) {
     sh.write(data)
+  }
+  
+  port_resize = function(cols, rows) {
+    sh.resize(cols, rows);
   }
 
 } else {
@@ -170,7 +177,7 @@ if (argv.port === 'shell') {
   });
   port.on('data', broadcast);
 
-  port_write = (data) => {
+  port_write = function(data) {
     port.write(data)
   }
 

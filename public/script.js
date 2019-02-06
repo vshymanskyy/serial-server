@@ -57,6 +57,7 @@
 
   function resizeHandler() {
     fit.fit(term);
+    socket.send(JSON.stringify({ type: 'resize', rows: term.rows, cols: term.cols }));
   }
   
   resizeHandler();
