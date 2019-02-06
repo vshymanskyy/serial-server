@@ -21,6 +21,7 @@
       }
 
       socket.onopen = () => {
+        resizeHandler();
         term.write("\n== connected ==\n");
       };
       socket.onmessage = (ev) => {
@@ -59,7 +60,7 @@
     fit.fit(term);
     socket.send(JSON.stringify({ type: 'resize', rows: term.rows, cols: term.cols }));
   }
-  
-  resizeHandler();
+
+  fit.fit(term);
 
 }());
