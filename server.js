@@ -114,7 +114,7 @@ if (argv.auth) {
 app.use(compression());
 
 // serve static files from /public and /node_modules
-app.use('/', express.static('public'));
+app.use('/', express.static(__dirname + '/public'));
 
 app.use('/node_modules/xterm/dist/', express.static(__dirname + '/node_modules/xterm/dist/'));
 
