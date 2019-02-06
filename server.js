@@ -143,7 +143,7 @@ let port_write;
 
 if (argv.port === 'shell') {
   const pty = require('node-pty');
-  let shell = process.env[os.platform() === 'win32' ? 'COMSPEC' : 'SHELL'];
+  let shell = process.env[process.platform === 'win32' ? 'COMSPEC' : 'SHELL'];
 
   let sh = pty.spawn(shell, [], {
     name: 'xterm-color',
