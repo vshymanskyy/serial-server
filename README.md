@@ -1,4 +1,5 @@
-This tool allows you to share/access your serial terminal over the internet.
+This tool allows you to share/access your serial terminal over the internet.  
+Based on [xterm.js](https://xtermjs.org/), [localtunnel](https://localtunnel.me).
 
 ## Example
 
