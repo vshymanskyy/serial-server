@@ -15,7 +15,7 @@ const chalk = require('chalk')
 
 const argv =
   yargs
-  .usage('$0 <port> [options]')
+  .usage('$0 [options] <port>')
   .options({
     'bind': {
       alias: ['addr'],
@@ -55,6 +55,8 @@ const argv =
       desc: 'Create tunnel link automatically'
     },
   })
+  .required(1, chalk.bold.red('Serial Port not specified'))
+  .strict()
   .config()
   .epilog('Copyright 2019 Volodymyr Shymanskyy')
   .alias('h', 'help')
@@ -150,12 +152,14 @@ myPort.on('data', broadcast);
 // start the servers:
 server.listen(argv.bind, (err) => {
   console.log(`Server listening on ${argv.bind.host}:${argv.bind.port}`);
+
+  if (argv.tunnel || argv.tunnel==='') {
+    console.log(`Preparing your tunnel...`);
+
+    const localtunnel = require('localtunnel');
+    localtunnel(argv.bind.port, { subdomain: argv.tunnel }, function(err, tunnel) {
+      console.log(`Tunnel link: ${chalk.blue.bold(tunnel.url)}`);
+    });
+  }
 });
 wss.on('connection', connectClient);
-
-if (argv.tunnel || argv.tunnel==='') {
-  const localtunnel = require('localtunnel');
-  localtunnel(argv.bind.port, { subdomain: argv.tunnel }, function(err, tunnel) {
-    console.log(`Your tunnel link: ${chalk.blue.bold(tunnel.url)}`);
-  });
-}
