@@ -3,18 +3,23 @@
 
   var socket, term;
 
+  Terminal.applyAddon(fit);
+  Terminal.applyAddon(winptyCompat);
+
   term = new Terminal({
     convertEol: true,
     cursorBlink: true
   });
+  term.winptyCompatInit();
   term.open(document.getElementById('terminal'));
 
   var protocol = (location.protocol === 'https:') ? 'wss://' : 'ws://';
+  var port = location.port ? `:${location.port}` : '';
 
   function connectWS(){
       console.log("Connecting...");
 
-      socket = new WebSocket(protocol + document.location.host);
+      socket = new WebSocket(protocol + location.hostname + port);
       socket.onclose = function() {
         term.write("\n== disconnected ==\n");
         setTimeout(connectWS, 1000);
@@ -57,10 +62,10 @@
   }
 
   function resizeHandler() {
-    fit.fit(term);
+    term.fit();
     socket.send(JSON.stringify({ type: 'resize', rows: term.rows, cols: term.cols }));
   }
 
-  fit.fit(term);
+  term.fit();
 
 }());
