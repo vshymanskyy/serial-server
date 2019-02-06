@@ -69,7 +69,7 @@ Object.assign(argv, {
   }
 });
 
-let serialPort = argv._[0];
+argv.port = argv._[0];
 
 let users = {}
 if (argv.auth) {
@@ -134,18 +134,50 @@ function connectClient(client) {
   client.on('message', (data) => {
     let msg = JSON.parse(data);
     if (msg.type == 'data') {
-      myPort.write(Buffer.from(msg.data));
+      port_write(Buffer.from(msg.data));
     }
   });
 }
 
+let port_write;
 
-var myPort = new SerialPort(serialPort, argv);
+if (argv.port === 'shell') {
+  const pty = require('node-pty');
 
-myPort.on('open', () => {
-  console.log(`Opened port ${myPort.path},${myPort.baudRate}`);
-});
-myPort.on('data', broadcast);
+  let shell = (process.platform === 'win32') ? 'powershell.exe' : 'bash';
+
+  let sh = pty.spawn(shell, [], {
+    name: 'xterm-color',
+    cols: 80,
+    rows: 30,
+    cwd: process.env.HOME,
+    env: process.env
+  });
+
+  console.log(`Spawned shell pid: ${sh.pid}`);
+
+  sh.on('data', broadcast);
+
+  port_write = (data) => {
+    sh.write(data)
+  }
+
+} else {
+
+  let port = new SerialPort(argv.port, argv);
+
+  port.on('open', () => {
+    console.log(`Opened port ${port.path},${port.baudRate}`);
+  });
+  port.on('data', broadcast);
+
+  port_write = (data) => {
+    port.write(data)
+  }
+
+}
+
+
 
 //TODO: handle port reconnection
 
