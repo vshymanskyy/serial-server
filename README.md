@@ -1,5 +1,15 @@
 This tool allows you to share/access your serial terminal over the internet.
 
+## Example
+
+```sh
+> serial-server /dev/ttyACM0 --baud=115200 --auth=vova:MyPaSS --tunnel=vsh-device01
+Server listening on 0.0.0.0:5123
+Preparing your tunnel...
+Opened port /dev/ttyACM0,115200
+Tunnel link: https://vsh-device01.localtunnel.me
+```
+Visit the provided tunnel link. It will ask for the password, then present you with a remote terminal:
 
 ![examples](/docs/example_browser.png)
 
@@ -29,12 +39,3 @@ Options:
 Copyright 2019 Volodymyr Shymanskyy
 
 ```
-
-## Example
-
-```sh
-serial-server /dev/ttyACM0 --baud=115200 --auth=vova:MyPaSS --tunnel=vsh-device01
-```
-![examples](/docs/example_console.png)
-
-Visit the provided tunnel link. It will ask for the password, then present you with a remote terminal.
