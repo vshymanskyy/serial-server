@@ -50,6 +50,11 @@ const argv =
       type: 'array',
       describe: 'Password protection. Can add multiple users (user:pass)',
     },
+    'readonly': {
+      alias: ['ro'],
+      type: 'boolean',
+      desc: 'Read-Only mode'
+    },
     'tunnel': {
       type: 'string',
       desc: 'Create tunnel link automatically'
@@ -135,8 +140,16 @@ function broadcastMessage(msg) {
 
 function connectClient(client) {
   client.send(JSON.stringify({ type: 'title', data: port_title() }));
+  if (argv.readonly) {
+    client.send(JSON.stringify({ type: 'input_disable' }));
+  }
 
   client.on('message', (data) => {
+    // Skip any commands, if in readonly mode
+    if (argv.readonly) {
+      return;
+    }
+
     let msg = JSON.parse(data);
     if (msg.type == 'data') {
       port_write(Buffer.from(msg.data));

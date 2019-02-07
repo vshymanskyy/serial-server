@@ -44,6 +44,8 @@
           term.write(msg.data.replace(/[\x7F]/g, "\b \b"));
         } else if (msg.type == "title") {
           document.title = msg.data;
+        } else if (msg.type == "input_disable") {
+          term.setOption("disableStdin", true);
         }
       };
   }
