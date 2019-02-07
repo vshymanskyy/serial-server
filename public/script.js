@@ -8,7 +8,10 @@
 
   term = new Terminal({
     convertEol: true,
-    cursorBlink: true
+    cursorBlink: true,
+    theme: {
+      background: '#111'
+    }
   });
   term.winptyCompatInit();
   term.open(document.getElementById('terminal'));
@@ -39,6 +42,8 @@
         }
         if (msg.type == "data") {
           term.write(msg.data.replace(/[\x7F]/g, "\b \b"));
+        } else if (msg.type == "title") {
+          document.title = msg.data;
         }
       };
   }

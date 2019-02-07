@@ -121,16 +121,21 @@ app.use('/', express.static(__dirname + '/public'));
 app.use('/node_modules/xterm/dist/', express.static(__dirname + '/node_modules/xterm/dist/'));
 
 function broadcast(data) {
-  data = data.toString();
+  broadcastMessage({ type: 'data', data: data.toString() });
+}
+
+function broadcastMessage(msg) {
   wss.clients.forEach((client) => {
     if (client.readyState === ws.OPEN) {
-      client.send(JSON.stringify({ type: 'data', data }));
+      client.send(JSON.stringify(msg));
     }
   });
 }
 
 
 function connectClient(client) {
+  client.send(JSON.stringify({ type: 'title', data: port_title() }));
+
   client.on('message', (data) => {
     let msg = JSON.parse(data);
     if (msg.type == 'data') {
@@ -143,16 +148,17 @@ function connectClient(client) {
 
 let port_write  = function(data) {};
 let port_resize = function(cols, rows) {};
+let port_title  = function() {};
 
 if (argv.port === 'shell') {
   const pty = require('node-pty-prebuilt');
   let shell = process.env[process.platform === 'win32' ? 'COMSPEC' : 'SHELL'];
 
   let sh = pty.spawn(shell, [], {
-    name: 'xterm-color',
+    name: 'xterm-256color',
     cols: 80,
     rows: 30,
-    cwd: process.env.HOME,
+    cwd: (process.platform === 'win32') ? process.env.USERPROFILE : process.env.HOME,
     env: process.env
   });
 
@@ -168,6 +174,20 @@ if (argv.port === 'shell') {
     sh.resize(cols, rows);
   }
 
+  port_title = function() {
+    return argv.tunnel ? `${argv.tunnel} - ${sh.process}` : sh.process;
+  }
+
+  // Watch for title changes
+  var prev_name;
+  setInterval(() => {
+    let name = port_title();
+    if (prev_name !== name) {
+      prev_name = name;
+      broadcastMessage({ type: 'title', data: name });
+    }
+  }, 1000)
+
 } else {
 
   let port = new SerialPort(argv.port, argv);
@@ -179,6 +199,10 @@ if (argv.port === 'shell') {
 
   port_write = function(data) {
     port.write(data)
+  }
+
+  port_title = function() {
+    return argv.port;
   }
 
 }
