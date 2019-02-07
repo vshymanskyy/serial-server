@@ -52,8 +52,8 @@ const argv =
     },
     'readonly': {
       alias: ['ro'],
-      type: 'boolean',
-      desc: 'Read-Only mode'
+      desc: 'List of users with readonly access',
+      coerce:  (opt) => (opt === true) ? "" : opt.split(',').filter(s => s.length)
     },
     'tunnel': {
       type: 'string',
@@ -76,6 +76,12 @@ Object.assign(argv, {
 
 argv.port = argv._[0];
 
+function isUserReadonly(name) {
+  if (argv.readonly === undefined) return false; // not set
+  if (argv.readonly === "") return true;         // option set with an empty list
+  return argv.readonly.includes(name);
+}
+
 let users = {}
 if (argv.auth) {
   for (let auth of argv.auth) {
@@ -84,8 +90,10 @@ if (argv.auth) {
   }
 }
 
-function verifyClient(client) {
-  let req = client.req;
+function verifyClient(info) {
+  let req = info.req;
+  let sock = req.client;
+
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
   
   if (!argv.auth) {
@@ -93,10 +101,14 @@ function verifyClient(client) {
     return true
   }
 
-  const cred = auth(client.req);
+  const cred = auth(req);
   for (let i in users) {
     if (cred.name == i && cred.pass == users[i]) {
-      console.log(`User ${chalk.yellow.bold(cred.name)} connected [${ip}]`)
+      sock.session = {
+        user:     cred.name,
+        readonly: isUserReadonly(cred.name)
+      };
+      console.log(`User ${chalk.yellow.bold(cred.name)}${sock.session.readonly ? " (readonly)" : ""} connected [${ip}]`)
       return true
     }
   }
@@ -139,17 +151,15 @@ function broadcastMessage(msg) {
 
 
 function connectClient(client) {
+  let sock = client._socket;
+
   client.send(JSON.stringify({ type: 'title', data: port_title() }));
-  if (argv.readonly) {
+  if (sock.session.readonly) {
     client.send(JSON.stringify({ type: 'input_disable' }));
+    return; // Skip any messages, if in readonly mode
   }
 
   client.on('message', (data) => {
-    // Skip any commands, if in readonly mode
-    if (argv.readonly) {
-      return;
-    }
-
     let msg = JSON.parse(data);
     if (msg.type == 'data') {
       port_write(Buffer.from(msg.data));
