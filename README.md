@@ -6,6 +6,13 @@ Based on [xterm.js](https://xtermjs.org/), [localtunnel](https://localtunnel.me)
 <img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/windows.svg" width="18" height="18" /> Windows,
 <img src="https://cdn.rawgit.com/simple-icons/simple-icons/develop/icons/apple.svg" width="18" height="18" /> MacOS
 
+**Features:**
+- Automatic tunneling from local machine to a public-accessible link
+- Multi-user access
+- Simple password-based authentication (with multiple credentials)
+- ANSI escape codes support: colors, mouse, window resize, window title
+- **Bonus:** share your OS shell. Just specify `shell` instead of serial port
+
 ## Example
 
 ```sh
