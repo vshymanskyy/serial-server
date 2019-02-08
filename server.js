@@ -52,7 +52,7 @@ const argv =
     },
     'readonly': {
       alias: ['ro'],
-      desc: 'List of users with readonly access',
+      desc: 'List of users with readonly access (comma-separated)',
       coerce:  (opt) => (opt === true) ? "" : opt.split(',').filter(s => s.length)
     },
     'tunnel': {
