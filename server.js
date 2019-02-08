@@ -8,7 +8,7 @@ const http = require('http')
 const ws = require('ws')
 const auth = require('basic-auth')
 const basicAuth = require('express-basic-auth')
-const compression = require("compression")
+const compression = require('compression')
 const yargs = require('yargs')
 const url = require('url')
 const chalk = require('chalk')
@@ -76,18 +76,22 @@ Object.assign(argv, {
 
 argv.port = argv._[0];
 
-function isUserReadonly(name) {
-  if (argv.readonly === undefined) return false; // not set
-  if (argv.readonly === "") return true;         // option set with an empty list
-  return argv.readonly.includes(name);
-}
-
 let users = {}
 if (argv.auth) {
   for (let auth of argv.auth) {
     let [user, pass] = auth.split(':');
-    users[user] = pass;
+    users[user.toLowerCase()] = pass || "";
   }
+}
+
+function userCheck(username, password) {
+  return users[username.toLowerCase()] === password;
+}
+
+function userIsReadonly(username) {
+  if (argv.readonly === undefined) return false; // not set
+  if (argv.readonly === "") return true;         // option set with an empty list
+  return argv.readonly.includes(username);
 }
 
 function verifyClient(info) {
@@ -95,22 +99,24 @@ function verifyClient(info) {
   let sock = req.client;
 
   let ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
-  
+
   if (!argv.auth) {
-    console.log(`New connection [${ip}]`)
+    sock.session = {
+      user:     "guest",
+      readonly: true
+    };
+    console.log(`Guest connected [${ip}]`)
     return true
   }
 
   const cred = auth(req);
-  for (let i in users) {
-    if (cred.name == i && cred.pass == users[i]) {
-      sock.session = {
-        user:     cred.name,
-        readonly: isUserReadonly(cred.name)
-      };
-      console.log(`User ${chalk.yellow.bold(cred.name)}${sock.session.readonly ? " (readonly)" : ""} connected [${ip}]`)
-      return true
-    }
+  if (userCheck(cred.name, cred.pass)) {
+    sock.session = {
+      user:     cred.name,
+      readonly: userIsReadonly(cred.name)
+    };
+    console.log(`User ${chalk.yellow.bold(cred.name)}${sock.session.readonly ? " (readonly)" : ""} connected [${ip}]`)
+    return true
   }
   console.log(`User ${cred.name}`, chalk.red.bold("rejected"), `[${ip}]`)
   return false
@@ -121,16 +127,15 @@ let server = http.createServer(app);
 let wss = new ws.Server({ server, verifyClient });
 
 app.use(helmet())
+app.use(compression())
 
 if (argv.auth) {
   app.use(basicAuth({
-    users,
-    challenge: true,
+    authorizer: userCheck,
+    challenge:  true,
     unauthorizedResponse: (req) => "Unauthorized."
   }));
 }
-
-app.use(compression());
 
 // serve static files from /public and /node_modules
 app.use('/', express.static(__dirname + '/public'));
