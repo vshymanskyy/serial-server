@@ -46,7 +46,7 @@ Options:
   --stopBits                                                            [choices: 1, 2] [default: 1]
   --parity                       [choices: "none", "even", "mark", "odd", "space"] [default: "none"]
   --auth                  Password protection. Can add multiple users (user:pass)            [array]
-  --readonly, --ro        List of users with readonly access
+  --readonly, --ro        List of users with readonly access (comma-separated)
   --tunnel                Create tunnel link automatically                                  [string]
   --config                Path to JSON config file
   -h, --help              Show help                                                        [boolean]
