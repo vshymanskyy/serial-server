@@ -17,7 +17,7 @@ Based on [xterm.js](https://xtermjs.org/), [localtunnel](https://localtunnel.me)
 ## Example
 
 ```sh
-> serial-server /dev/ttyACM0 --baud=115200 --auth=vova:MyPaSS --tunnel=vsh-device01
+$ serial-server /dev/ttyACM0 --baud=115200 --auth=vova:MyPaSS --tunnel=vsh-device01
 Server listening on 0.0.0.0:5123
 Preparing your tunnel...
 Opened port /dev/ttyACM0,115200
@@ -52,4 +52,15 @@ Options:
   -h, --help              Show help                                                        [boolean]
 
 Copyright 2019 Volodymyr Shymanskyy
+```
+
+## More examples
+Start OS shell server, allow multiple guests to connect with read-only access:
+```sh
+$ serial-server shell --auth=vova:MyPaSS --auth=guest --readonly=guest --tunnel=vsh-shell
+```
+
+Non-authenticated access is always provided in read-only mode:
+```sh
+$ serial-server /dev/ttyACM0 --tunnel=vsh-device01
 ```
