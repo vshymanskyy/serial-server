@@ -10,6 +10,7 @@ Based on [xterm.js](https://xtermjs.org/), [localtunnel](https://localtunnel.me)
 - Automatic tunneling from local machine to a public-accessible link
 - Multi-user access
 - Simple password-based authentication (with multiple credentials)
+- Read-only access for specific users
 - ANSI escape codes support: colors, mouse, window resize, window title
 - **Bonus:** share your OS shell. Just specify `shell` instead of serial port
 
@@ -45,10 +46,10 @@ Options:
   --stopBits                                                            [choices: 1, 2] [default: 1]
   --parity                       [choices: "none", "even", "mark", "odd", "space"] [default: "none"]
   --auth                  Password protection. Can add multiple users (user:pass)            [array]
+  --readonly, --ro        List of users with readonly access
   --tunnel                Create tunnel link automatically                                  [string]
   --config                Path to JSON config file
   -h, --help              Show help                                                        [boolean]
 
 Copyright 2019 Volodymyr Shymanskyy
-
 ```
