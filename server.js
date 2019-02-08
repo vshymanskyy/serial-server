@@ -80,18 +80,18 @@ let users = {}
 if (argv.auth) {
   for (let auth of argv.auth) {
     let [user, pass] = auth.split(':');
-    users[user.toLowerCase()] = pass || "";
+    users[user] = pass || "";
   }
 }
 
-function userCheck(username, password) {
-  return users[username.toLowerCase()] === password;
+function userCheck(user, pass) {
+  return users[user] === pass;
 }
 
-function userIsReadonly(username) {
+function userIsReadonly(user) {
   if (argv.readonly === undefined) return false; // not set
   if (argv.readonly === "") return true;         // option set with an empty list
-  return argv.readonly.includes(username);
+  return argv.readonly.includes(user);
 }
 
 function verifyClient(info) {
@@ -110,6 +110,8 @@ function verifyClient(info) {
   }
 
   const cred = auth(req);
+  if (!cred) return false;
+
   if (userCheck(cred.name, cred.pass)) {
     sock.session = {
       user:     cred.name,
